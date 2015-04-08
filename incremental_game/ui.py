@@ -20,6 +20,7 @@ class UserInterface(object):
     def __init__(self, game):
         self.game = game
         self.menu_stack = []
+        self.previous_text = ''
 
         self.show_sub_menu(menu_class=MainMenu)
 
@@ -38,12 +39,14 @@ class UserInterface(object):
         self.current_menu.process(user_input=user_input)
 
     def render(self):
-        os.system('cls')
-
         text = HEADING_TEXT.format(self=self)
         text += self.current_menu.text
 
-        print(text, end='')
+        if text != self.previous_text:
+            os.system('cls')
+            print(text, end='')
+
+        self.previous_text = text
 
 
 class Menu(object):
