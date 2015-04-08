@@ -4,7 +4,7 @@ from .unit import units
 
 class Player(object):
     def __init__(self):
-        self.cash = 100
+        self.cash = 250
         self.units = {}
 
     def purchase(self, unit_class):
@@ -15,11 +15,10 @@ class Player(object):
         if unit_class.COST > self.cash:
             return False
 
-        else:
-            self.cash -= unit_class.COST
-            self.units[unit_class] = self.units.get(unit_class, 0) + 1
+        self.cash -= unit_class.COST
+        self.units[unit_class] = self.units.get(unit_class, 0) + 1
 
-            return True
+        return True
 
     def sell(self, unit_class):
         """Sell a unit
@@ -33,6 +32,8 @@ class Player(object):
 
         self.units[unit_class] -= 1
         self.cash += unit_class.COST * 0.5
+
+        return True
 
     @property
     def money_generated_per_second(self):

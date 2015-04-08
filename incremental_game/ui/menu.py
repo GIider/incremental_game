@@ -1,52 +1,10 @@
 # -*- coding: utf-8 -*-
 import sys
-import os
 
-from .constants import *
-from .unit import units
+from ..constants import *
+from ..unit import units
 
-
-HEADING_TEXT = '''\r## THE GAME HAS BEEN RUNNING FOR {self.game.time_running:.0f} SECONDS! ##
-
-You have {self.game.player.cash:.2f} (+ {self.game.player.money_generated_per_second:.2f}/s) cash!
-
-Units:
-------
-{self.game.player.verbose_unit_ownership}
-'''
-
-
-class UserInterface(object):
-    def __init__(self, game):
-        self.game = game
-        self.menu_stack = []
-        self.previous_text = ''
-
-        self.show_sub_menu(menu_class=MainMenu)
-
-    def show_sub_menu(self, menu_class):
-        menu_instance = menu_class(user_interface=self)
-        self.menu_stack.insert(0, menu_instance)
-
-    def close_current_menu(self):
-        self.menu_stack.pop(0)
-
-    @property
-    def current_menu(self):
-        return self.menu_stack[0]
-
-    def process(self, user_input):
-        self.current_menu.process(user_input=user_input)
-
-    def render(self):
-        text = HEADING_TEXT.format(self=self)
-        text += self.current_menu.text
-
-        if text != self.previous_text:
-            os.system('cls')
-            print(text, end='')
-
-        self.previous_text = text
+__all__ = ['MainMenu', 'PurchaseUnitMenu', 'SellUnitMenu']
 
 
 class Menu(object):
@@ -79,6 +37,9 @@ class Menu(object):
     def cancel(self):
         """Cancel this menu instance"""
         self.user_interface.close_current_menu()
+
+    def add_message(self, text):
+        self.user_interface.add_message(text=text)
 
     @property
     def text(self):
@@ -120,24 +81,28 @@ class MainMenu(Menu):
 
 
 class PurchaseUnitMenu(Menu):
-
     @property
     def items(self):
-        return [unit.__name__ for unit in units]
-
-    def enter(self):
-        unit = units[self.position]
-
-        self.user_interface.game.player.purchase(unit_class=unit)
-
-
-class SellUnitMenu(Menu):
-
-    @property
-    def items(self):
-        return [unit.__name__ for unit in units]
+        return [unit.get_unit_description() for unit in units]
 
     def enter(self):
         unit_class = units[self.position]
 
-        self.user_interface.game.player.sell(unit_class=unit_class)
+        if self.user_interface.game.player.purchase(unit_class=unit_class):
+            self.add_message('Purchased {}'.format(unit_class.__name__))
+        else:
+            self.add_message('Can\'t afford {}'.format(unit_class.__name__))
+
+
+class SellUnitMenu(Menu):
+    @property
+    def items(self):
+        return [unit.get_unit_description() for unit in units]
+
+    def enter(self):
+        unit_class = units[self.position]
+
+        if self.user_interface.game.player.sell(unit_class=unit_class):
+            self.add_message('Sold {}'.format(unit_class.__name__))
+        else:
+            self.add_message('Can\'t sell {}'.format(unit_class.__name__))
