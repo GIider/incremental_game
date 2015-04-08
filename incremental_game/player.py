@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from .unit import units
 
 class Player(object):
     def __init__(self):
@@ -42,7 +42,7 @@ class Player(object):
     def verbose_unit_ownership(self):
         text = ''
 
-        for unit_class, amount in self.units.items():
-            text += '{}: {}\n'.format(unit_class.__name__, amount)
+        for unit in units:
+            text += '{}: {}\n'.format(unit.__name__, self.units.get(unit, 0))
 
         return text

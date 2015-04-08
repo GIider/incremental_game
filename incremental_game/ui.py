@@ -2,8 +2,8 @@
 import sys
 import os
 
-from incremental_game.constants import *
-from .unit import Worker
+from .constants import *
+from .unit import units
 
 
 HEADING_TEXT = '''\r## THE GAME HAS BEEN RUNNING FOR {self.game.time_running:.0f} SECONDS! ##
@@ -13,8 +13,6 @@ You have {self.game.player.cash:.2f} (+ {self.game.player.money_generated_per_se
 Units:
 ------
 {self.game.player.verbose_unit_ownership}
-
-
 '''
 
 
@@ -23,9 +21,10 @@ class UserInterface(object):
         self.game = game
         self.menu_stack = []
 
-        self.show_sub_menu(menu_instance=MainMenu(user_interface=self))
+        self.show_sub_menu(menu_class=MainMenu)
 
-    def show_sub_menu(self, menu_instance):
+    def show_sub_menu(self, menu_class):
+        menu_instance = menu_class(user_interface=self)
         self.menu_stack.insert(0, menu_instance)
 
     def close_current_menu(self):
@@ -62,7 +61,7 @@ class Menu(object):
         elif user_input == KEY.DOWN:
             self.position += 1
         elif user_input == KEY.ENTER:
-            self.enter(self.position)
+            self.enter()
         elif user_input == KEY.ESCAPE:
             self.cancel()
 
@@ -71,7 +70,7 @@ class Menu(object):
         elif self.position > len(self.items) - 1:
             self.position = 0
 
-    def enter(self, position):
+    def enter(self):
         raise NotImplementedError()
 
     def cancel(self):
@@ -83,49 +82,59 @@ class Menu(object):
         # Create a list from the items so we can modify it in place
         items = list(self.items)
 
+        if len(items) == 0:
+            return ''
+
         items[self.position] = '> {}'.format(items[self.position])
 
         return '\n'.join(items)
 
 
 class MainMenu(Menu):
-    POSITION_BUY = 0
-    POSITION_EXIT_GAME = 1
+    POSITION_BUY_UNITS = 0
+    POSITION_SELL_UNITS = 1
+    POSITION_EXIT_GAME = 2
 
     @property
     def items(self):
-        return ('Buy Items',
+        return ('Purchase Units',
+                'Sell Units',
                 'Exit Game')
 
-    def enter(self, position):
-        if position == self.POSITION_BUY:
-            sub_menu = PurchaseUnitMenu(user_interface=self.user_interface)
-            self.user_interface.show_sub_menu(sub_menu)
+    def enter(self):
+        if self.position == self.POSITION_BUY_UNITS:
+            self.user_interface.show_sub_menu(menu_class=PurchaseUnitMenu)
 
-        elif position == self.POSITION_EXIT_GAME:
+        elif self.position == self.POSITION_SELL_UNITS:
+            self.user_interface.show_sub_menu(menu_class=SellUnitMenu)
+
+        elif self.position == self.POSITION_EXIT_GAME:
             self.cancel()
 
     def cancel(self):
         """End the game"""
         sys.exit(0)
 
+
 class PurchaseUnitMenu(Menu):
-    POSITION_BUY_UNIT = 0
-    POSITION_SELL_UNIT = 1
-    POSITION_EXIT_MENU = 2
 
     @property
     def items(self):
-        return ('Purchase Unit',
-                'Sell Unit',
-                'Cancel')
+        return [unit.__name__ for unit in units]
 
-    def enter(self, position):
-        if position == self.POSITION_BUY_UNIT:
-            self.user_interface.game.player.purchase(unit_class=Worker)
+    def enter(self):
+        unit = units[self.position]
 
-        elif position == self.POSITION_SELL_UNIT:
-            self.user_interface.game.player.sell(unit_class=Worker)
+        self.user_interface.game.player.purchase(unit_class=unit)
 
-        elif position == self.POSITION_EXIT_MENU:
-            self.user_interface.close_current_menu()
+
+class SellUnitMenu(Menu):
+
+    @property
+    def items(self):
+        return [unit.__name__ for unit in units]
+
+    def enter(self):
+        unit_class = units[self.position]
+
+        self.user_interface.game.player.sell(unit_class=unit_class)

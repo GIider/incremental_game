@@ -9,6 +9,9 @@ to create the bare basics for a [Incremental Game](http://en.wikipedia.org/wiki/
 in your windows command line...
 
 This is just a toy project and nothing serious ;-)
+I created everything from scratch to see if I could write a "mini game framework" on my own.
+
+Mission successful!
 
 Requirements
 ------------
