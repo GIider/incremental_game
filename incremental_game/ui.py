@@ -2,8 +2,8 @@
 import sys
 import os
 
-from constants import *
-from unit import Worker
+from incremental_game.constants import *
+from .unit import Worker
 
 
 HEADING_TEXT = '''\r## THE GAME HAS BEEN RUNNING FOR {self.game.time_running:.0f} SECONDS! ##
@@ -36,9 +36,7 @@ class UserInterface(object):
         return self.menu_stack[0]
 
     def process(self, user_input):
-        menu = self.menu_stack[0]
-
-        menu.process(user_input=user_input)
+        self.current_menu.process(user_input=user_input)
 
     def render(self):
         os.system('cls')
@@ -56,7 +54,7 @@ class Menu(object):
 
     @property
     def items(self):
-        return []
+        raise NotImplementedError()
 
     def process(self, user_input):
         if user_input == KEY.UP:
@@ -65,6 +63,8 @@ class Menu(object):
             self.position += 1
         elif user_input == KEY.ENTER:
             self.enter(self.position)
+        elif user_input == KEY.ESCAPE:
+            self.cancel()
 
         if self.position < 0:
             self.position = len(self.items) - 1
@@ -74,9 +74,15 @@ class Menu(object):
     def enter(self, position):
         raise NotImplementedError()
 
+    def cancel(self):
+        """Cancel this menu instance"""
+        self.user_interface.close_current_menu()
+
     @property
     def text(self):
+        # Create a list from the items so we can modify it in place
         items = list(self.items)
+
         items[self.position] = '> {}'.format(items[self.position])
 
         return '\n'.join(items)
@@ -92,13 +98,16 @@ class MainMenu(Menu):
                 'Exit Game')
 
     def enter(self, position):
-        if position == self.POSITION_EXIT_GAME:
-            sys.exit(0)
-
-        elif position == self.POSITION_BUY:
+        if position == self.POSITION_BUY:
             sub_menu = PurchaseUnitMenu(user_interface=self.user_interface)
             self.user_interface.show_sub_menu(sub_menu)
 
+        elif position == self.POSITION_EXIT_GAME:
+            self.cancel()
+
+    def cancel(self):
+        """End the game"""
+        sys.exit(0)
 
 class PurchaseUnitMenu(Menu):
     POSITION_BUY_UNIT = 0

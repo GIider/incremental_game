@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import time
-import os
 import msvcrt
 
-from constants import *
+from .constants import *
+from .ui import UserInterface
 
-from ui import UserInterface
 
 MS_PER_UPDATE = 1
 
@@ -31,9 +30,6 @@ class Game(object):
             elapsed_time = current_time - previous_time
 
             user_input = self.fetch_input()
-            if user_input == KEY.ESCAPE:
-                break
-
             self.process_input(user_input)
 
             self.update(elapsed_time)

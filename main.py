@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from game import Game
-from player import Player
+from incremental_game.game import Game
+from incremental_game.player  import Player
 
 if __name__ == '__main__':
     player = Player()
