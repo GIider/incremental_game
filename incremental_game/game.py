@@ -4,14 +4,12 @@ import msvcrt
 
 from .constants import *
 from .ui import UserInterface
-
-
-MS_PER_UPDATE = 1
+from .player import Player
 
 
 class Game(object):
-    def __init__(self, player):
-        self.player = player
+    def __init__(self):
+        self.player = Player()
         self.starting_time = time.time()
         self.running = True
 

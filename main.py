@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-from incremental_game.game import Game
-from incremental_game.player  import Player
+from incremental_game import Game
 
 if __name__ == '__main__':
-    player = Player()
-    game = Game(player=player)
+    game = Game()
 
     try:
         game.run()

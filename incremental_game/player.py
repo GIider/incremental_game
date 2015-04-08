@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from .unit import units
 
+
 class Player(object):
     def __init__(self):
         self.cash = 100
